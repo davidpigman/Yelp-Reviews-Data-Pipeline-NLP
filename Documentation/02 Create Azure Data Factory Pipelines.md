@@ -37,7 +37,11 @@
 		- Parameters | Name: folder_name | Type: String | Default value:
 
 ## Step 3. Create Pipeline
+
 #### 3.1 CopyOnceWeek: delete then copy business, checkin, tips and users parquet files
+
+![CopyOnceaWeek](https://github.com/user-attachments/assets/152ebe6b-553f-48c5-b7b5-7a9864d9acb9)
+
 copyOnceWeek: Deletes business, checkin, tips, users parquet files in target ADLS storagewcdb11c then transforms AWS PostgreSQL SQL tables to parquet folder/files: project/business/business.parquet, project/checkin/checkin.parquet, project/users/users/parquet, project/tips/tips.parquet.
 
 	- business parquet file | Activity: Delete
@@ -66,20 +70,26 @@ copyOnceWeek: Deletes business, checkin, tips, users parquet files in target ADL
 		- Sink | Sink dataset: AzBlobPrqtbusiness
 
 #### 3.2 copyPostsAllDatestoReview: Copy all yelp review dates as a one time load
+
+![CopyAllYelpReviews03](https://github.com/user-attachments/assets/da1ab980-8f18-4b83-878b-3129e17c746e)
+
 copyPostsAllDatestoReview: Copies yelp reviews from all date stamped folders into ADLS project de-yelp-daily/reviews/* folder without the subdirectories for a larger dataset.
 Variables | Name: Date | Type: String | Default value: Value
 
-	- Delete Yelp Folder Contents | Activity: Delete
+	- Yelp Reviews Folders | Activity: Delete
 		- Source | Dataset: AzBlobPrqtlsmyblobdeyelpdaily  | File path type: File path in dataset
-	- Copy All Yelp Reviews | Activity: Copy
+	- Reviews Sub Folder to Folder | Activity: Copy
 		- Source | Source dataset: AzblobprqtPublicdeyelpdaily | File path type: Wildcard file path: de-yelp-daily / output *.parquet
 		- Sink | Sink dataset: AzBlobprqtlsmyblobdeyelpdaily
 
 #### 3.3 copyPostsTodayEverydaywDBNotebook: Copy reviews and consolidate into a single subfolder every day
+
+![yelprevieweveryday](https://github.com/user-attachments/assets/614b4110-62dd-4f4f-9846-847351de642e)
+
 copyPostsTodayEverydaywDBNotebook: Copies yelp reviews from today's date stamped folders into ADLS project de-yelp-daily/reviews/* folder without the subdirectories for a larger dataset.
 Variables | Name: Date | Type: String | Default value: Value
 
-	- Get List of Folders | Activity: Get Metadata
+	- Get List of Yelp Reviews Folders | Activity: Get Metadata
 		- Settings | Dataset: AzBlobPrqtPublicdeyelpdaily | Field List: Child items, Item name
 	- For Each Folder | Activity: For Each
 		- Settings | Sequential: Check | Items: @activity('Get List of Folders').output.childItems
@@ -89,7 +99,7 @@ Variables | Name: Date | Type: String | Default value: Value
 				- Copy Today's Directory | Activity: Copy data
 					- Source | Source Dataset: AzBlobPrqtPublicdeyelpdaily | File path type: Wildcard file path | Wildcard file path: de-yelp-daily / @concat('output/dt=',formatDateTime('2024-10-29','yyyy-MM-dd')) / *.* | Recursively: check
 					- Sink | Sink dataset: AzBlobPrqtlsmyblobdeyelpdaily_projectdate | Dataset properties, Name: folder name | Value: de-yelp-daily/reviews/@{item().Name} | Type: string
-	- Notebook | Activity: Notebook
+	- Predict Yelp Ratings with NLP | Activity: Notebook
 		- Azure Databricks | Databricks linked service: AzDBricks_b11_db_cc_02
 		- Settings | Notebook path: /Users/david_b_pigman@hotmail.com/bd-project/model_inference-3-Static-20241104
 
