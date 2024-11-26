@@ -38,10 +38,8 @@
 
 ## Step 3. Create Pipeline
 #### 3.1 CopyOnceWeek: delete then copy business, checkin, tips and users parquet files
-
-
-
 copyOnceWeek: Deletes business, checkin, tips, users parquet files in target ADLS storagewcdb11c then transforms AWS PostgreSQL SQL tables to parquet folder/files: project/business/business.parquet, project/checkin/checkin.parquet, project/users/users/parquet, project/tips/tips.parquet.
+
 	- business parquet file | Activity: Delete
 		- Source | Dataset: AzBlobPrqtbusiness | File path type: File path in dataset 
 		- Logging settings | Enable logging: check | Logging account linked service: ls_my_blob | Folder path: bd-project/logging
